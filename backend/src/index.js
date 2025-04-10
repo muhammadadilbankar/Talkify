@@ -14,7 +14,9 @@ const app = express();
 
 const PORT = process.env.PORT;
 
-app.use(express.json());
+// ✅ Increase the size limit for JSON and URL-encoded data
+app.use(express.json({ limit: '10mb' })); // Increase limit to 10MB
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(cookieParser());
 app.use(cors({
     origin: "http://localhost:5173",
@@ -23,7 +25,7 @@ app.use(cors({
 ))
 
 app.use("/api/auth", authRoutes);
-app.use("/api/message", messageRoutes);
+app.use("/api/messages", messageRoutes);
 
 app.listen(PORT , () => {
     console.log(`Server is running on port ${PORT}`);

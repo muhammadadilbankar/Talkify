@@ -92,22 +92,42 @@ export const logout = (req, res) => {
 export const updateProfile = async (req, res) => {
     try {
         const { profilePic } = req.body;
-        const userId = req.user._id;
+        const userId = req.user?._id; // Ensure userId is valid
 
-        if (!profilePic) {
-            return res.status(400).json({ message: "Profile Pic is required" });
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized: User ID missing" });
         }
 
-        const uploadResponse = await cloudinary.uploader.upload(profilePic);
+        if (!profilePic) {
+            return res.status(400).json({ message: "Profile picture is required" });
+        }
+
+        console.log("Received profilePic:", profilePic.slice(0, 50)); // Debugging
+
+        // Upload image to Cloudinary
+        const uploadResponse = await cloudinary.uploader.upload(profilePic, {
+            folder: "profile_pictures", // Optional: Store images in a separate folder
+            transformation: [{ width: 300, height: 300, crop: "fill" }] // Resize to 300x300
+        });
+
+        console.log("Cloudinary upload successful:", uploadResponse.secure_url);
+
+        // Update user in MongoDB
         const updatedUser = await User.findByIdAndUpdate(
             userId,
             { profilePic: uploadResponse.secure_url },
             { new: true }
         );
 
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        console.log("Updated user:", updatedUser);
+
         res.status(200).json(updatedUser);
     } catch (error) {
-        console.log("error in update profile:", error);
+        console.error("Error in updateProfile:", error);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
