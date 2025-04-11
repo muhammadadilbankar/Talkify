@@ -16,16 +16,31 @@ const ChatContainer = () => {
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
 
+  // useEffect(() => {
+  //   if (selectedUser?._id) {
+  //     getMessages(selectedUser._id).catch((error) => {
+  //       console.error("Failed to get messages:", error);
+  //       subscribeToMessages();
+
+  //       return () => unsubscribeFromMessages();
+  //     });
+  //   }
+  // }, [selectedUser?._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
+  // 1. Fetch messages when selectedUser changes
+    useEffect(() => {
+    if (selectedUser?._id) {
+      getMessages(selectedUser._id);
+    }
+  }, [selectedUser?._id]);
+
+  // 2. Subscribe/unsubscribe to socket events
   useEffect(() => {
     if (selectedUser?._id) {
-      getMessages(selectedUser._id).catch((error) => {
-        console.error("Failed to get messages:", error);
-        subscribeToMessages();
-
-        return () => unsubscribeFromMessages();
-      });
+      subscribeToMessages();
+      return () => unsubscribeFromMessages();
     }
-  }, [selectedUser?._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
+  }, [selectedUser?._id]);
+
 
   if (!selectedUser) return null;
 
